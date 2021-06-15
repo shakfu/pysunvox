@@ -14,6 +14,9 @@ main:
 
 .PHONY: test reset clean
 
+test:
+	python3 -c "import sunvox;sunvox.play('resources/test.sunvox')"
+
 clean:
 	@rm -rf build
 	@rm -f sunvox.*.so
@@ -25,5 +28,3 @@ reset: clean
 
 
 
-test:
-	python3 -c "import sunvox;sunvox.hello()"
