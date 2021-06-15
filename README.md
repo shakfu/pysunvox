@@ -2,7 +2,6 @@
 
 This is a minimal proof-of-concept cython wrap of the [sunvox](https://warmplace.ru/soft/sunvox/) [library for developers](https://warmplace.ru/soft/sunvox/sunvox_lib.php) for macOS.
 
-All rights for `sunvox` and its developer library reserved to its author, Alexander Zolotov. (see: https://warmplace.ru)
 
 
 ## Requirements
@@ -31,3 +30,10 @@ make reset
 
 ```
 
+## License / Credits
+All rights for `sunvox` and its developer library reserved to its author, Alexander Zolotov. 
+
+(see: https://warmplace.ru)
+
+Powered by SunVox (modular synth & tracker)
+Copyright (c) 2008 - 2020, Alexander Zolotov <nightradio@gmail.com>, WarmPlace.ru
