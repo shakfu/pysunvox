@@ -7,6 +7,9 @@ All rights for `sunvox` and its developer library reserved to its author, Alexan
 
 ## Requirements
 
+Tested on macOS only.
+
+- [sunvox library for developers](https://warmplace.ru/soft/sunvox/sunvox_lib.php)
 - python3
 - cython
 
@@ -23,7 +26,7 @@ make test
 # to clean
 make clean
 
-# to reset (removes cython generate c-code)
+# to reset (removes cython generated c-code)
 make reset
 
 ```
