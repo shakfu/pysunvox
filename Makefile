@@ -15,7 +15,8 @@ main:
 .PHONY: test reset clean
 
 test:
-	python3 -c "import sunvox;sunvox.play('resources/test.sunvox')"
+	python3 -c "import sunvox;sunvox.play('resources/test0.sunvox')"
+# 	python3 -c "import sunvox;sunvox.generate('resources/test.sunvox', 'out.wav')"
 
 clean:
 	@rm -rf build

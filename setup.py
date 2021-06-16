@@ -3,8 +3,8 @@ from setuptools import Extension, setup
 
 setup(
     ext_modules = cythonize([
-        # Extension("sunvox", ["sunvox.pyx"],
-        Extension("sunvox", ["src/*.pyx"],
+        Extension("sunvox", sources=["src/*.pyx"],
+        # Extension("sunvox", sources=["src/*.pyx", "src/functions.c"],
         
             # define_macros = [('MAJOR_VERSION', '1'),
             #                  ('MINOR_VERSION', '0')],

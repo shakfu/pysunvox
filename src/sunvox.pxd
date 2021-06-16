@@ -14,6 +14,7 @@ cdef extern from *:
     #include <sunvox.h>
     """
 
+
 cdef extern from "sunvox.h":
 
     cdef enum:
@@ -191,3 +192,8 @@ cdef extern from "sunvox.h":
     cdef int sv_load_dll()
     cdef int sv_unload_dll()
     cdef int sv_load_dll2(char * filename)
+
+
+# cdef extern from "functions.h":
+#     cdef int _generate(char* sunvox_file, char* wav_out)
+

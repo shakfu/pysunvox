@@ -1,8 +1,8 @@
+//// TODO: convert to functions.pyx
+
 // * Loading SunVox project (song) from file
 // * Exporting audio to the WAV file
-
-// this works but still trying to convert to generate.pyx
-
+//
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,9 +11,7 @@
 #include <signal.h>
 
 #define SUNVOX_MAIN
-#include "sunvox.h"
-
-#include "functions.h"
+#include "../../include/sunvox.h"
 
 int g_sv_sample_rate = 44100;
 const int g_sv_channels_num = 2;
@@ -28,7 +26,7 @@ void int_handler( int param )
 
 
 
-int _generate(char* sunvox_file, char* wav_out)
+int generate(char* sunvox_file, char* wav_out)
 {
     signal( SIGINT, int_handler );
 
@@ -130,5 +128,10 @@ int _generate(char* sunvox_file, char* wav_out)
     sv_unload_dll();
 
     return 0;
+}
+
+int main() {
+	generate("test.sunvox", "out.wav");
+	return 0;
 }
 
