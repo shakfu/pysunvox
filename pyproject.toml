@@ -1,12 +1,52 @@
-[build-system]
-requires = ["scikit-build-core", "cython"]
-build-backend = "scikit_build_core.build"
-
 [project]
 name = "pysunvox"
 version = "0.1.0"
 description = "Python bindings for the SunVox modular synthesizer library"
 requires-python = ">=3.10"
+readme = "README.md"
+license = "MIT"
+authors = [
+    { name = "Shakeeb Alireza", email = "shakfu@users.noreply.github.com" }
+]
+keywords = [
+    "sunvox",
+    "synthesizer",
+    "modular",
+    "tracker",
+    "music",
+    "audio",
+    "dsp",
+    "midi",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Cython",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Multimedia :: Sound/Audio",
+    "Topic :: Multimedia :: Sound/Audio :: MIDI",
+    "Topic :: Multimedia :: Sound/Audio :: Sound Synthesis",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://github.com/shakfu/pysunvox"
+Repository = "https://github.com/shakfu/pysunvox"
+Issues = "https://github.com/shakfu/pysunvox/issues"
+
+[build-system]
+requires = ["scikit-build-core", "cython"]
+build-backend = "scikit_build_core.build"
 
 [tool.scikit-build]
 wheel.packages = ["src/pysunvox"]
@@ -16,9 +56,9 @@ CMAKE_BUILD_TYPE = "Release"
 
 [dependency-groups]
 dev = [
-	"pytest>=8.0",
-	"delvewheel>=1.11.2; sys_platform == 'win32'",
-	"delocate>=0.13.0; sys_platform == 'darwin'",
-	"auditwheel>=6.6.0; sys_platform == 'linux'",
-	"twine>=6.2.0",
+    "pytest>=8.0",
+    "delvewheel>=1.11.2; sys_platform == 'win32'",
+    "delocate>=0.13.0; sys_platform == 'darwin'",
+    "auditwheel>=6.6.0; sys_platform == 'linux'",
+    "twine>=6.2.0",
 ]

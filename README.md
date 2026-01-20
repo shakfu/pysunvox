@@ -1,74 +1,162 @@
-# pysunvox - a cython wrap of the sunvoxlib
+# pysunvox
 
-This is a minimal proof-of-concept cython wrap of the [sunvox](https://warmplace.ru/soft/sunvox/) [library for developers](https://warmplace.ru/soft/sunvox/sunvox_lib.php) for macOS.
+Python bindings for the [SunVox](https://warmplace.ru/soft/sunvox/) modular synthesizer [library](https://warmplace.ru/soft/sunvox/sunvox_lib.php).
 
+## Features
 
-## Usage
+- High-level Pythonic API with context managers, properties, and type hints
+- Low-level 1:1 wrappers of the C `sv_*` functions
+- Full access to modules, controllers, patterns, and playback
+- Thread-safe slot locking
+
+## Installation
+
+```bash
+pip install pysunvox
+```
+
+## Quick Start
+
 ```python
-
-import sunvox
-
-sunvox.play('resources/test.sunvox')
-
-```
-
-The cython code for the function above is
-
-
-```cython
 import time
-from sunvox cimport *
+from pysunvox import SunVox
 
-
-def play(path: str, volume: int = 256, slot: int = 0, secs: int = 10):
-    sv_load_dll()
-    ver = sv_init(NULL, 44100, 2, 0)
-    if ver >= 0:
-        sv_open_slot(slot)
-        sv_load(slot, path.encode('utf8'))
-        sv_volume(slot, volume)
-        sv_play_from_beginning(slot)
-        time.sleep(secs)
-        sv_stop(slot)
-        sv_close_slot(slot)
-        sv_deinit()
-    sv_unload_dll()
+with SunVox(sample_rate=44100) as sv:
+    with sv.open_slot(0) as slot:
+        slot.load("song.sunvox")
+        print(f"Song: {slot.name}, BPM: {slot.bpm}")
+        slot.volume = 256
+        slot.play_from_beginning()
+        time.sleep(10)
+        slot.stop()
 ```
 
+## API Overview
 
+### High-Level API
 
+The high-level API provides Pythonic classes with context managers:
 
-## Requirements
+```python
+from pysunvox import SunVox, Slot, Module, Pattern
 
-Tested on macOS only.
+# Initialize engine and open a slot
+with SunVox(sample_rate=44100) as sv:
+    with sv.open_slot(0) as slot:
+        # Load and play a project
+        slot.load("project.sunvox")
+        slot.play()
 
-- [sunvox library for developers](https://warmplace.ru/soft/sunvox/sunvox_lib.php)
-- python3
-- cython
+        # Access song properties
+        print(f"BPM: {slot.bpm}, TPL: {slot.tpl}")
+        print(f"Length: {slot.length_lines} lines")
 
+        # Work with modules
+        for i in range(slot.num_modules):
+            module = slot.get_module(i)
+            if module.exists:
+                print(f"Module {i}: {module.name} ({module.type})")
 
-## Compilation
+        # Create modules (requires lock)
+        with slot.lock():
+            synth = slot.new_module("Generator", "MySynth", x=256, y=256)
+            synth.connect_to(0)  # Connect to Output
 
-```base
-# to compile
-make
+        # Access module controllers
+        ctl = synth.get_controller(0)
+        print(f"{ctl.name}: {ctl.value} (range: {ctl.min_value}-{ctl.max_value})")
+        ctl.value = 128
 
-# to test
+        # Work with patterns
+        with slot.lock():
+            pattern = slot.new_pattern("MyPattern", tracks=4, lines=32)
+            pattern.set_event(track=0, line=0, note=60, vel=128, module=synth.num + 1)
+
+        # Save the project
+        slot.save("modified.sunvox")
+```
+
+### Low-Level API
+
+Direct access to `sv_*` functions via the `_core` module:
+
+```python
+from pysunvox import _core
+
+# Initialize
+_core.init(None, 44100, 2, 0)
+_core.open_slot(0)
+
+# Load and play
+_core.load(0, "song.sunvox")
+_core.play_from_beginning(0)
+
+# Query state
+print(f"BPM: {_core.get_song_bpm(0)}")
+print(f"Current line: {_core.get_current_line(0)}")
+
+# Cleanup
+_core.stop(0)
+_core.close_slot(0)
+_core.deinit()
+```
+
+### Constants
+
+```python
+from pysunvox import (
+    # Note commands
+    NOTECMD_NOTE_OFF,
+    NOTECMD_ALL_NOTES_OFF,
+    NOTECMD_PLAY,
+    NOTECMD_STOP,
+
+    # Init flags
+    SV_INIT_FLAG_NO_DEBUG_OUTPUT,
+    SV_INIT_FLAG_OFFLINE,
+    SV_INIT_FLAG_AUDIO_FLOAT32,
+
+    # Module flags
+    SV_MODULE_FLAG_EXISTS,
+    SV_MODULE_FLAG_GENERATOR,
+    SV_MODULE_FLAG_EFFECT,
+)
+```
+
+## Supported Platforms
+
+Pre-built wheels are available for:
+
+- **macOS**: x86_64, arm64
+- **Linux**: x86_64, aarch64 (glibc only, no musl/Alpine)
+- **Windows**: AMD64
+
+Python versions: 3.10, 3.11, 3.12, 3.13
+
+## Building from Source
+
+Requires the [SunVox library for developers](https://warmplace.ru/soft/sunvox/sunvox_lib.php).
+
+```bash
+# Install dependencies and build
+make sync
+make build
+
+# Run tests
 make test
 
-# to clean
+# Build wheel with bundled library
+make wheel
+
+# Clean build artifacts
 make clean
-
-# to reset (removes cython generated c-code)
-make reset
-
 ```
 
-
 ## License / Credits
-All rights for `sunvox` and its developer library reserved to its author, Alexander Zolotov. 
 
-(see: https://warmplace.ru)
+All rights for SunVox and its developer library reserved to its author, Alexander Zolotov.
+
+See: <https://warmplace.ru>
 
 Powered by SunVox (modular synth & tracker)
-Copyright (c) 2008 - 2020, Alexander Zolotov <nightradio@gmail.com>, WarmPlace.ru
+Copyright (c) 2008 - 2024, Alexander Zolotov <nightradio@gmail.com>, WarmPlace.ru
