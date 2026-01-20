@@ -1,0 +1,144 @@
+name: Build Wheels
+
+on:
+  push:
+    branches: [master, main]
+    tags: ["v*"]
+  pull_request:
+    branches: [master, main]
+  workflow_dispatch:
+
+# Available sunvox_lib dynamic libraries constrain which wheels can be built:
+#   macOS:   lib_x86_64/sunvox.dylib, lib_arm64/sunvox.dylib
+#   Linux:   lib_x86_64/sunvox.so, lib_x86/sunvox.so, lib_arm64/sunvox.so, lib_arm/sunvox.so
+#   Windows: lib_x86_64/sunvox.dll, lib_x86/sunvox.dll
+#
+# musllinux is not supported (sunvox libraries are glibc-linked)
+# 32-bit builds (i686, win32) are skipped due to declining Python support
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Build wheels
+        run: uvx cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-*"
+          # Skip musllinux (no glibc) and 32-bit (declining support)
+          CIBW_SKIP: "*-musllinux_* *-win32 *_i686"
+          # Architectures constrained by sunvox_lib availability
+          CIBW_ARCHS_MACOS: "x86_64 arm64"
+          CIBW_ARCHS_LINUX: "x86_64 aarch64"
+          CIBW_ARCHS_WINDOWS: "AMD64"
+          CIBW_TEST_REQUIRES: pytest
+          CIBW_TEST_COMMAND: pytest {project}/tests -v
+          CIBW_BEFORE_BUILD: "uv pip install --system cython scikit-build-core"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: ./wheelhouse/*.whl
+
+  aggregate_wheels:
+    name: Aggregate all wheels
+    needs: [build_wheels]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          path: all-wheels
+          merge-multiple: true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: all-wheels
+          path: all-wheels/*.whl
+
+  # build_sdist:
+  #   name: Build source distribution
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+
+  #     - name: Set up uv
+  #       uses: astral-sh/setup-uv@v5
+  #       with:
+  #         enable-cache: true
+
+  #     - name: Build sdist
+  #       run: uv build --sdist
+
+  #     - uses: actions/upload-artifact@v4
+  #       with:
+  #         name: sdist
+  #         path: dist/*.tar.gz
+
+  check:
+    name: Check distributions
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Check distributions
+        run: uvx twine check dist/*
+
+  publish-test:
+    name: Publish to TestPyPI
+    needs: [check]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/pysunvox
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  publish:
+    name: Publish to PyPI
+    needs: [publish-test]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: pypi
+      url: https://pypi.org/p/pysunvox
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

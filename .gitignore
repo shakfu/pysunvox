@@ -1,6 +1,10 @@
 __pycache__
 .DS_Store
-build
-dist
+build/
+dist/
+.*_cache.
+.cache.
+.venv.
+venv/
 
 

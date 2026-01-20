@@ -1,0 +1,24 @@
+[build-system]
+requires = ["scikit-build-core", "cython"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "pysunvox"
+version = "0.1.0"
+description = "Python bindings for the SunVox modular synthesizer library"
+requires-python = ">=3.10"
+
+[tool.scikit-build]
+wheel.packages = ["src/pysunvox"]
+
+[tool.scikit-build.cmake.define]
+CMAKE_BUILD_TYPE = "Release"
+
+[dependency-groups]
+dev = [
+	"pytest>=8.0",
+	"delvewheel>=1.11.2; sys_platform == 'win32'",
+	"delocate>=0.13.0; sys_platform == 'darwin'",
+	"auditwheel>=6.6.0; sys_platform == 'linux'",
+	"twine>=6.2.0",
+]
