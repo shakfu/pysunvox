@@ -31,6 +31,47 @@ with SunVox(sample_rate=44100) as sv:
         slot.stop()
 ```
 
+## Command-Line Interface
+
+pysunvox provides a CLI for common operations:
+
+```bash
+# Show help
+pysunvox --help
+
+# Display project information
+pysunvox info song.sunvox
+
+# List all modules in a project
+pysunvox modules song.sunvox
+
+# Show detailed module info (including controllers)
+pysunvox module song.sunvox 1
+
+# List all patterns
+pysunvox patterns song.sunvox
+
+# Play a project
+pysunvox play song.sunvox
+
+# Play with options
+pysunvox play song.sunvox --duration 30 --volume 200 --line 0
+
+# Show version information
+pysunvox version
+```
+
+### CLI Commands
+
+| Command | Description |
+|---------|-------------|
+| `info <file>` | Show project metadata (name, BPM, TPL, duration, counts) |
+| `modules <file>` | List all modules with type, name, and flags |
+| `module <file> <id>` | Show detailed module info including controllers |
+| `patterns <file>` | List all patterns with tracks, lines, and position |
+| `play <file>` | Play a project (`-d` duration, `-v` volume, `-l` start line) |
+| `version` | Show pysunvox and SunVox library versions |
+
 ## API Overview
 
 ### High-Level API

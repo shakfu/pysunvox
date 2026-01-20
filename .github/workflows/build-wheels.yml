@@ -1,12 +1,12 @@
 name: Build Wheels
 
-on:
-  push:
-    branches: [master, main]
-    tags: ["v*"]
-  pull_request:
-    branches: [master, main]
-  workflow_dispatch:
+on: [workflow_dispatch]
+  # push:
+  #   branches: [master, main]
+  #   tags: ["v*"]
+  # pull_request:
+  #   branches: [master, main]
+  # workflow_dispatch:
 
 # Available sunvox_lib dynamic libraries constrain which wheels can be built:
 #   macOS:   lib_x86_64/sunvox.dylib, lib_arm64/sunvox.dylib
@@ -36,7 +36,7 @@ jobs:
       - name: Build wheels
         run: uvx cibuildwheel --output-dir wheelhouse
         env:
-          CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-*"
+          CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-* cp314-*"
           # Skip musllinux (no glibc) and 32-bit (declining support)
           CIBW_SKIP: "*-musllinux_* *-win32 *_i686"
           # Architectures constrained by sunvox_lib availability

@@ -4,7 +4,8 @@
 # This Makefile wraps common build commands for convenience.
 # The actual build is handled by scikit-build-core via pyproject.toml
 
-.PHONY: all sync build rebuild test clean distclean wheel sdist check publish publish-test help
+.PHONY: all sync build rebuild test clean distclean wheel sdist check publish publish-test\
+		help build-wheel build-wheels fix-wheels check-wheels release
 
 # Detect OS
 UNAME_S := $(shell uname -s)
@@ -14,48 +15,66 @@ all: build
 
 # Sync environment (initial setup, installs dependencies + package)
 sync:
-	uv sync
+	@uv sync
 
 # Build/rebuild the extension after code changes
 build:
-	uv sync --reinstall-package pysunvox
+	@uv sync --reinstall-package pysunvox
 
 # Alias for build
 rebuild: build
 
 # Run tests
 test:
-	uv run pytest tests/ -v
+	@uv run pytest tests/ -v
 
 # Build wheel with platform-specific library bundling
-wheel:
-	uv build --wheel
+build-wheel:
+	@uv build --wheel
+
+# Build wheels with platform-specific library bundling
+build-wheels:
+	@uv build --wheel --python 3.10
+	@uv build --wheel --python 3.11
+	@uv build --wheel --python 3.12
+	@uv build --wheel --python 3.13
+	@uv build --wheel --python 3.14
+
+# fix rpath issues if any
+fix-wheels:
 ifeq ($(UNAME_S),Darwin)
-	uv run delocate-wheel -v dist/*.whl
+	@uv run delocate-wheel -v dist/*.whl
 endif
 ifeq ($(UNAME_S),Linux)
-	uv run auditwheel repair dist/*.whl -w dist/
+	@uv run auditwheel repair dist/*.whl -w dist/
 	@rm -f dist/*-linux_*.whl
 endif
 ifeq ($(OS),Windows_NT)
-	uv run delvewheel repair dist/*.whl -w dist/
+	@uv run delvewheel repair dist/*.whl -w dist/
 endif
+
+# Make a platform-specific wheel
+wheel: build-wheel fix-wheels check
+
+# Make a platform-specific set of wheels
+release: build-wheels fix-wheels check
 
 # Build source distribution
 sdist:
-	uv build --sdist
+	@uv build --sdist
 
 # Check distribution with twine
-check:
-	uv run twine check dist/*
+check-wheels:
+	@uv run twine check dist/*
+check: check-wheels
 
 # Publish to PyPI
 publish: check
-	uv run twine upload dist/*
+	@uv run twine upload dist/*
 
 # Publish to TestPyPI
 publish-test: check
-	uv run twine upload --repository testpypi dist/*
+	@uv run twine upload --repository testpypi dist/*
 
 # Clean build artifacts
 clean:
