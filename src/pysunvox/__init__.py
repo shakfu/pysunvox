@@ -113,4 +113,4 @@ __all__ = [
     "SV_MODULE_OUTPUTS_MASK",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"

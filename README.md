@@ -43,13 +43,19 @@ pysunvox --help
 pysunvox info song.sunvox
 
 # List all modules in a project
-pysunvox modules song.sunvox
+pysunvox info song.sunvox --modules
 
 # Show detailed module info (including controllers)
-pysunvox module song.sunvox 1
+pysunvox info song.sunvox --module 1
 
 # List all patterns
-pysunvox patterns song.sunvox
+pysunvox info song.sunvox --patterns
+
+# Scan and analyze all songs in a directory
+pysunvox songs /path/to/songs
+
+# Scan recursively
+pysunvox songs /path/to/songs -r
 
 # Play a project
 pysunvox play song.sunvox
@@ -58,7 +64,7 @@ pysunvox play song.sunvox
 pysunvox play song.sunvox --duration 30 --volume 200 --line 0
 
 # Show version information
-pysunvox version
+pysunvox info --version
 ```
 
 ### CLI Commands
@@ -66,11 +72,12 @@ pysunvox version
 | Command | Description |
 |---------|-------------|
 | `info <file>` | Show project metadata (name, BPM, TPL, duration, counts) |
-| `modules <file>` | List all modules with type, name, and flags |
-| `module <file> <id>` | Show detailed module info including controllers |
-| `patterns <file>` | List all patterns with tracks, lines, and position |
+| `info <file> -m/--modules` | List all modules with type, name, and flags |
+| `info <file> -M/--module <id>` | Show detailed module info including controllers |
+| `info <file> -p/--patterns` | List all patterns with tracks, lines, and position |
+| `info --version` | Show pysunvox and SunVox library versions |
+| `songs <dir> [-r]` | Scan and analyze all songs in a directory |
 | `play <file>` | Play a project (`-d` duration, `-v` volume, `-l` start line) |
-| `version` | Show pysunvox and SunVox library versions |
 
 ## API Overview
 
