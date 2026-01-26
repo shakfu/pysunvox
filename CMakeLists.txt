@@ -70,15 +70,42 @@ endif()
 install(TARGETS _core DESTINATION pysunvox)
 
 # Install the SunVox library alongside the extension
-install(FILES ${SUNVOX_LIB} DESTINATION pysunvox)
-
-# Fix the library reference on macOS (the sunvox.dylib install name is just "sunvox.dylib"
-# without any path, so we need to change it to use @loader_path)
+# Rename to libsunvox.* to avoid conflict with sunvox.py Python module
 if(APPLE)
+    set(SUNVOX_INSTALLED_NAME "libsunvox.dylib")
+elseif(WIN32)
+    set(SUNVOX_INSTALLED_NAME "libsunvox.dll")
+else()
+    set(SUNVOX_INSTALLED_NAME "libsunvox.so")
+endif()
+install(FILES ${SUNVOX_LIB} DESTINATION pysunvox RENAME ${SUNVOX_INSTALLED_NAME})
+
+# Fix library references after renaming
+if(APPLE)
+    # On macOS, use install_name_tool to update the library reference
     install(CODE "
         execute_process(
-            COMMAND install_name_tool -change sunvox.dylib @loader_path/sunvox.dylib
+            COMMAND install_name_tool -change sunvox.dylib @loader_path/libsunvox.dylib
                     \"\${CMAKE_INSTALL_PREFIX}/pysunvox/$<TARGET_FILE_NAME:_core>\"
         )
     ")
+elseif(UNIX)
+    # On Linux, use patchelf to update SONAME and library reference
+    find_program(PATCHELF patchelf)
+    if(PATCHELF)
+        install(CODE "
+            # Update the SONAME in the renamed library
+            execute_process(
+                COMMAND ${PATCHELF} --set-soname libsunvox.so
+                        \"\${CMAKE_INSTALL_PREFIX}/pysunvox/libsunvox.so\"
+            )
+            # Update the reference in _core to use the new name
+            execute_process(
+                COMMAND ${PATCHELF} --replace-needed sunvox.so libsunvox.so
+                        \"\${CMAKE_INSTALL_PREFIX}/pysunvox/$<TARGET_FILE_NAME:_core>\"
+            )
+        ")
+    else()
+        message(WARNING "patchelf not found - library renaming may not work correctly at runtime")
+    endif()
 endif()
