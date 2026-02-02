@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2]
+
+### Fixed
+
+- Fixed Windows build with MSVC:
+  - Fixed `sunvox.h` header compatibility with MSVC C compiler (trailing `__stdcall` not supported in C)
+  - Fixed library path to use architecture-specific directory (`lib_x86_64`)
+  - Added import library (`sunvox.lib`) generation for MSVC linking
+  - Fixed DLL bundling with delvewheel for wheel packaging
+
 ## [0.1.1]
 
 ### Fixed

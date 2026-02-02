@@ -50,7 +50,7 @@ ifeq ($(UNAME_S),Linux)
 	@rm -f dist/*-linux_*.whl
 endif
 ifeq ($(OS),Windows_NT)
-	@uv run delvewheel repair dist/*.whl -w dist/
+	@uv run delvewheel repair dist/*.whl -w dist/ --add-path sunvox_lib/windows/lib_x86_64
 endif
 
 # Make a platform-specific wheel

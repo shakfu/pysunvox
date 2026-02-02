@@ -179,7 +179,7 @@ Pre-built wheels are available for:
 - **Linux**: x86_64, aarch64 (glibc only, no musl/Alpine)
 - **Windows**: AMD64
 
-Python versions: 3.10, 3.11, 3.12, 3.13
+Python versions: 3.10, 3.11, 3.12, 3.13, 3.14
 
 ## Building from Source
 
@@ -199,6 +199,15 @@ make wheel
 # Clean build artifacts
 make clean
 ```
+
+### Windows Build Requirements
+
+Building on Windows requires:
+- Visual Studio 2022 (or compatible MSVC toolchain)
+- CMake 3.15+
+- Python development headers
+
+The build process automatically generates an import library (`sunvox.lib`) from the DLL using Visual Studio's `lib.exe`. Wheel packaging uses `delvewheel` to bundle the SunVox DLL.
 
 ## License / Credits
 

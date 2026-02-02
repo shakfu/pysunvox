@@ -1,15 +1,34 @@
+# Build artifacts
 *.a
+*.o
+*.tar
+
+# Libraries (but not in sunvox_lib/)
 *.dll
 *.dylib
 *.lib
-*.o
-*.tar
+*.so
+!sunvox_lib/**/*.dll
+!sunvox_lib/**/*.dylib
+!sunvox_lib/**/*.lib
+!sunvox_lib/**/*.so
+
+# Generated files (keep .def and .lib in sunvox_lib/)
+*.exp
+
+# Caches
 .*_cache/
 .cache/
+__pycache__
+
+# OS files
 .DS_Store
+
+# Project files
+.claude/
 .pyscn
 .venv/
-__pycache__
 build/
 dist/
 venv/
+test_venv/

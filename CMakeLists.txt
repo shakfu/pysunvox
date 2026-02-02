@@ -23,9 +23,15 @@ elseif(UNIX)
     set(SUNVOX_LIB_NAME "sunvox.so")
     set(SUNVOX_LIB "${SUNVOX_LIB_DIR}/${SUNVOX_LIB_NAME}")
 elseif(WIN32)
-    set(SUNVOX_LIB_DIR "${CMAKE_SOURCE_DIR}/sunvox_lib/windows")
-    set(SUNVOX_LIB_NAME "sunvox.dll")
+    if(CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+        set(SUNVOX_LIB_DIR "${CMAKE_SOURCE_DIR}/sunvox_lib/windows/lib_x86_64")
+    else()
+        set(SUNVOX_LIB_DIR "${CMAKE_SOURCE_DIR}/sunvox_lib/windows/lib_x86")
+    endif()
+    set(SUNVOX_LIB_NAME "sunvox.lib")
+    set(SUNVOX_DLL_NAME "sunvox.dll")
     set(SUNVOX_LIB "${SUNVOX_LIB_DIR}/${SUNVOX_LIB_NAME}")
+    set(SUNVOX_DLL "${SUNVOX_LIB_DIR}/${SUNVOX_DLL_NAME}")
 endif()
 
 set(SUNVOX_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/sunvox_lib/headers")
@@ -71,14 +77,18 @@ install(TARGETS _core DESTINATION pysunvox)
 
 # Install the SunVox library alongside the extension
 # Rename to libsunvox.* to avoid conflict with sunvox.py Python module
+# On Windows, keep the original name since the .pyd is linked against sunvox.dll
 if(APPLE)
     set(SUNVOX_INSTALLED_NAME "libsunvox.dylib")
+    set(SUNVOX_RUNTIME_LIB ${SUNVOX_LIB})
 elseif(WIN32)
-    set(SUNVOX_INSTALLED_NAME "libsunvox.dll")
+    set(SUNVOX_INSTALLED_NAME "sunvox.dll")
+    set(SUNVOX_RUNTIME_LIB ${SUNVOX_DLL})
 else()
     set(SUNVOX_INSTALLED_NAME "libsunvox.so")
+    set(SUNVOX_RUNTIME_LIB ${SUNVOX_LIB})
 endif()
-install(FILES ${SUNVOX_LIB} DESTINATION pysunvox RENAME ${SUNVOX_INSTALLED_NAME})
+install(FILES ${SUNVOX_RUNTIME_LIB} DESTINATION pysunvox RENAME ${SUNVOX_INSTALLED_NAME})
 
 # Fix library references after renaming
 if(APPLE)

@@ -75,7 +75,12 @@ typedef struct
 #if defined(_WIN32) || defined(_WIN32_WCE) || defined(__WIN32__) || defined(_WIN64)
     #define OS_WIN
     #define LIBNAME "sunvox.dll"
-    typedef LPCTSTR LIBNAME_STR_TYPE;
+    #ifdef SUNVOX_MAIN
+        #include <windows.h>
+        typedef LPCTSTR LIBNAME_STR_TYPE;
+    #else
+        typedef const char* LIBNAME_STR_TYPE;
+    #endif
 #else
     typedef const char* LIBNAME_STR_TYPE;
 #endif
@@ -100,6 +105,9 @@ typedef struct
 #ifdef OS_WIN
     #ifdef __GNUC__
 	#define SUNVOX_FN_ATTR __attribute__((stdcall))
+    #elif defined(SUNVOX_STATIC_LIB)
+	/* For static lib mode with MSVC, use empty attribute (C doesn't support trailing __stdcall) */
+	#define SUNVOX_FN_ATTR /**/
     #else
 	#define SUNVOX_FN_ATTR __stdcall
     #endif
