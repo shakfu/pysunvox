@@ -5,7 +5,7 @@
 # The actual build is handled by scikit-build-core via pyproject.toml
 
 .PHONY: all sync build rebuild test clean distclean wheel sdist check publish publish-test\
-		help build-wheel build-wheels fix-wheels check-wheels release
+		help build-wheel build-wheels fix-wheels check-wheels release fetch
 
 # Detect OS
 UNAME_S := $(shell uname -s)
@@ -13,12 +13,16 @@ UNAME_S := $(shell uname -s)
 # Default target
 all: build
 
+# Download the SunVox library into thirdparty/ (not tracked in git)
+fetch:
+	@python3 scripts/fetch_sunvox_lib.py
+
 # Sync environment (initial setup, installs dependencies + package)
-sync:
+sync: fetch
 	@uv sync
 
 # Build/rebuild the extension after code changes
-build:
+build: fetch
 	@uv sync --reinstall-package pysunvox
 
 # Alias for build
@@ -50,7 +54,7 @@ ifeq ($(UNAME_S),Linux)
 	@rm -f dist/*-linux_*.whl
 endif
 ifeq ($(OS),Windows_NT)
-	@uv run delvewheel repair dist/*.whl -w dist/ --add-path sunvox_lib/windows/lib_x86_64
+	@uv run delvewheel repair dist/*.whl -w dist/ --add-path thirdparty/sunvox_lib/windows/lib_x86_64
 endif
 
 # Make a platform-specific wheel
@@ -94,6 +98,7 @@ distclean: clean
 help:
 	@echo "Available targets:"
 	@echo "  all          - Build/rebuild the extension (default)"
+	@echo "  fetch        - Download the SunVox library into thirdparty/"
 	@echo "  sync         - Sync environment (initial setup)"
 	@echo "  build        - Rebuild extension after code changes"
 	@echo "  rebuild      - Alias for build"

@@ -22,7 +22,9 @@ from pysunvox import _core
 
 
 # Path to test resources
-RESOURCES_DIR = os.path.join(os.path.dirname(__file__), "..", "sunvox_lib", "resources")
+RESOURCES_DIR = os.path.join(
+    os.path.dirname(__file__), "..", "thirdparty", "sunvox_lib", "resources"
+)
 SAMPLE_SONG = os.path.join(RESOURCES_DIR, "song01.sunvox")
 
 

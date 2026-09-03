@@ -176,14 +176,24 @@ from pysunvox import (
 Pre-built wheels are available for:
 
 - **macOS**: x86_64, arm64
-- **Linux**: x86_64, aarch64 (glibc only, no musl/Alpine)
+- **Linux**: x86_64, aarch64 (glibc 2.34 or newer; no musl/Alpine)
 - **Windows**: AMD64
 
 Python versions: 3.10, 3.11, 3.12, 3.13, 3.14
 
 ## Building from Source
 
-Requires the [SunVox library for developers](https://warmplace.ru/soft/sunvox/sunvox_lib.php).
+The [SunVox library for developers](https://warmplace.ru/soft/sunvox/sunvox_lib.php)
+is not tracked in this repository. `make sync` and `make build` download it into
+`thirdparty/` first; run it directly with:
+
+```bash
+python3 scripts/fetch_sunvox_lib.py
+```
+
+The URL and its SHA-256 are pinned at the top of that script. Source
+distributions on PyPI already contain the library, so installing from an sdist
+needs no download.
 
 ```bash
 # Install dependencies and build
@@ -207,7 +217,7 @@ Building on Windows requires:
 - CMake 3.15+
 - Python development headers
 
-The build process automatically generates an import library (`sunvox.lib`) from the DLL using Visual Studio's `lib.exe`. Wheel packaging uses `delvewheel` to bundle the SunVox DLL.
+The build generates an import library (`sunvox.lib`) at configure time from `support/sunvox.def` using Visual Studio's `lib.exe`; upstream ships only `sunvox.dll`. Wheel packaging uses `delvewheel`, which leaves the DLL where CMake installed it beside `_core.pyd`.
 
 ## License / Credits
 

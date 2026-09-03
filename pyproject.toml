@@ -54,6 +54,10 @@ build-backend = "scikit_build_core.build"
 [tool.scikit-build]
 wheel.packages = ["src/pysunvox"]
 wheel.exclude = ["*.pxd", "*.pyx"]
+# thirdparty/ is gitignored, but the sdist must carry the SunVox binaries so it
+# builds without network access
+sdist.include = ["thirdparty/sunvox_lib/**"]
+sdist.exclude = ["thirdparty/.cache/**"]
 
 [tool.scikit-build.cmake.define]
 CMAKE_BUILD_TYPE = "Release"

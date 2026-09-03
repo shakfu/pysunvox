@@ -3,18 +3,17 @@
 *.o
 *.tar
 
-# Libraries (but not in sunvox_lib/)
+# Libraries
 *.dll
 *.dylib
 *.lib
 *.so
-!sunvox_lib/**/*.dll
-!sunvox_lib/**/*.dylib
-!sunvox_lib/**/*.lib
-!sunvox_lib/**/*.so
 
-# Generated files (keep .def and .lib in sunvox_lib/)
+# Generated files
 *.exp
+
+# SunVox library, fetched by scripts/fetch_sunvox_lib.py
+thirdparty/
 
 # Caches
 .*_cache/

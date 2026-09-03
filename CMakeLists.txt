@@ -3,38 +3,81 @@ project(${SKBUILD_PROJECT_NAME} VERSION ${SKBUILD_PROJECT_VERSION} LANGUAGES C)
 
 find_package(Python REQUIRED COMPONENTS Interpreter Development.Module)
 
+# The SunVox binaries are not tracked in git; scripts/fetch_sunvox_lib.py
+# downloads them here.
+set(SUNVOX_ROOT "${CMAKE_SOURCE_DIR}/thirdparty/sunvox_lib")
+if(NOT EXISTS "${SUNVOX_ROOT}/headers/sunvox.h")
+    message(FATAL_ERROR
+        "${SUNVOX_ROOT} is missing. Run: python scripts/fetch_sunvox_lib.py")
+endif()
+
 # Platform detection for SunVox library
 if(APPLE)
-    if(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
-        set(SUNVOX_LIB_DIR "${CMAKE_SOURCE_DIR}/sunvox_lib/macos/lib_arm64")
+    # CMAKE_SYSTEM_PROCESSOR reports the host, not the target. cibuildwheel
+    # cross-compiles x86_64 wheels on arm64 runners, so select on
+    # CMAKE_OSX_ARCHITECTURES when it is set.
+    if(CMAKE_OSX_ARCHITECTURES)
+        set(SUNVOX_TARGET_ARCH "${CMAKE_OSX_ARCHITECTURES}")
     else()
-        set(SUNVOX_LIB_DIR "${CMAKE_SOURCE_DIR}/sunvox_lib/macos/lib_x86_64")
+        set(SUNVOX_TARGET_ARCH "${CMAKE_SYSTEM_PROCESSOR}")
+    endif()
+    list(LENGTH SUNVOX_TARGET_ARCH SUNVOX_ARCH_COUNT)
+    if(SUNVOX_ARCH_COUNT GREATER 1)
+        message(FATAL_ERROR
+            "universal2 is unsupported: SunVox ships separate arm64 and x86_64 dylibs")
+    endif()
+    if(SUNVOX_TARGET_ARCH STREQUAL "arm64")
+        set(SUNVOX_LIB_DIR "${SUNVOX_ROOT}/macos/lib_arm64")
+    else()
+        set(SUNVOX_LIB_DIR "${SUNVOX_ROOT}/macos/lib_x86_64")
     endif()
     set(SUNVOX_LIB_NAME "sunvox.dylib")
     set(SUNVOX_LIB "${SUNVOX_LIB_DIR}/${SUNVOX_LIB_NAME}")
 elseif(UNIX)
     if(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64")
-        set(SUNVOX_LIB_DIR "${CMAKE_SOURCE_DIR}/sunvox_lib/linux/lib_arm64")
+        set(SUNVOX_LIB_DIR "${SUNVOX_ROOT}/linux/lib_arm64")
     elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64")
-        set(SUNVOX_LIB_DIR "${CMAKE_SOURCE_DIR}/sunvox_lib/linux/lib_x86_64")
+        set(SUNVOX_LIB_DIR "${SUNVOX_ROOT}/linux/lib_x86_64")
     else()
-        set(SUNVOX_LIB_DIR "${CMAKE_SOURCE_DIR}/sunvox_lib/linux/lib_x86")
+        set(SUNVOX_LIB_DIR "${SUNVOX_ROOT}/linux/lib_x86")
     endif()
     set(SUNVOX_LIB_NAME "sunvox.so")
     set(SUNVOX_LIB "${SUNVOX_LIB_DIR}/${SUNVOX_LIB_NAME}")
 elseif(WIN32)
     if(CMAKE_SYSTEM_PROCESSOR STREQUAL "AMD64" OR CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
-        set(SUNVOX_LIB_DIR "${CMAKE_SOURCE_DIR}/sunvox_lib/windows/lib_x86_64")
+        set(SUNVOX_LIB_DIR "${SUNVOX_ROOT}/windows/lib_x86_64")
     else()
-        set(SUNVOX_LIB_DIR "${CMAKE_SOURCE_DIR}/sunvox_lib/windows/lib_x86")
+        set(SUNVOX_LIB_DIR "${SUNVOX_ROOT}/windows/lib_x86")
     endif()
-    set(SUNVOX_LIB_NAME "sunvox.lib")
     set(SUNVOX_DLL_NAME "sunvox.dll")
-    set(SUNVOX_LIB "${SUNVOX_LIB_DIR}/${SUNVOX_LIB_NAME}")
     set(SUNVOX_DLL "${SUNVOX_LIB_DIR}/${SUNVOX_DLL_NAME}")
+    if(MSVC)
+        # Upstream ships only sunvox.dll. Build the import library from the
+        # tracked export list rather than committing a generated binary.
+        set(SUNVOX_LIB "${CMAKE_CURRENT_BINARY_DIR}/sunvox.lib")
+        if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+            set(SUNVOX_IMPLIB_MACHINE X64)
+        else()
+            set(SUNVOX_IMPLIB_MACHINE X86)
+        endif()
+        execute_process(
+            COMMAND "${CMAKE_AR}" /nologo "/def:${CMAKE_SOURCE_DIR}/support/sunvox.def"
+                    "/machine:${SUNVOX_IMPLIB_MACHINE}" "/out:${SUNVOX_LIB}"
+            RESULT_VARIABLE SUNVOX_IMPLIB_RESULT
+            OUTPUT_VARIABLE SUNVOX_IMPLIB_LOG
+            ERROR_VARIABLE SUNVOX_IMPLIB_LOG
+        )
+        if(NOT SUNVOX_IMPLIB_RESULT EQUAL 0)
+            message(FATAL_ERROR
+                "failed to generate sunvox.lib with ${CMAKE_AR}: ${SUNVOX_IMPLIB_LOG}")
+        endif()
+    else()
+        # MinGW links directly against the DLL
+        set(SUNVOX_LIB "${SUNVOX_DLL}")
+    endif()
 endif()
 
-set(SUNVOX_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/sunvox_lib/headers")
+set(SUNVOX_INCLUDE_DIR "${SUNVOX_ROOT}/headers")
 
 message(STATUS "SunVox library: ${SUNVOX_LIB}")
 message(STATUS "SunVox include: ${SUNVOX_INCLUDE_DIR}")
