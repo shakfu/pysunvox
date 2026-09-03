@@ -6,6 +6,36 @@ This module provides direct 1:1 wrappers of the sv_* C functions.
 """
 
 from libc.stdlib cimport malloc, free
+
+cdef extern from *:
+    """
+    /* sv_save_to_memory() returns a block from the SunVox library's own C
+       runtime. On Windows sunvox.dll imports msvcrt.dll while this extension
+       links the UCRT, and the two keep separate heaps: passing the block to
+       the UCRT free() corrupts the heap (STATUS_HEAP_CORRUPTION, 0xC0000374).
+       Resolve free() from the same CRT the DLL uses instead. Leaking beats
+       corrupting, so an unresolvable symbol is a no-op. */
+    #ifdef _WIN32
+    #include <windows.h>
+    typedef void (__cdecl *pysunvox_free_fn)(void*);
+    static void pysunvox_free(void* p)
+    {
+        static pysunvox_free_fn crt_free = NULL;
+        if (crt_free == NULL)
+        {
+            HMODULE crt = GetModuleHandleA("msvcrt.dll");
+            if (crt == NULL) crt = LoadLibraryA("msvcrt.dll");
+            if (crt != NULL)
+                crt_free = (pysunvox_free_fn)GetProcAddress(crt, "free");
+        }
+        if (crt_free != NULL) crt_free(p);
+    }
+    #else
+    #include <stdlib.h>
+    static void pysunvox_free(void* p) { free(p); }
+    #endif
+    """
+    void pysunvox_free(void* p) nogil
 from libc.string cimport memcpy
 from libc.stdint cimport int16_t
 from cpython.bytes cimport PyBytes_AsString
@@ -303,7 +333,7 @@ cpdef bytes save_to_memory(int slot):
     if data == NULL or size == 0:
         return None
     cdef bytes result = (<char*>data)[:size]
-    free(data)
+    pysunvox_free(data)
     return result
 
 

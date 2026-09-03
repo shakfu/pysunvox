@@ -68,6 +68,11 @@ jobs:
           # CPython's LOAD_WITH_ALTERED_SEARCH_PATH finds it
           CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >-
             delvewheel repair --exclude sunvox.dll -w {dest_dir} {wheel}
+          # The x86_64 sunvox.dylib has a minimum target of 10.12, above the
+          # 10.9 cibuildwheel would otherwise tag cp310/cp311 wheels with.
+          # cibuildwheel treats this as a floor, raising it to 10.13/10.15 for
+          # newer CPython and to 11.0 for arm64.
+          MACOSX_DEPLOYMENT_TARGET: "10.12"
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: pytest {project}/tests -v
           CIBW_BEFORE_BUILD: "uv pip install --system cython scikit-build-core"

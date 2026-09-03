@@ -24,6 +24,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the build-wheels workflow: the `check` job listed the commented-out
   `build_sdist` in `needs`, so GitHub rejected the file and every run finished with
   zero jobs.
+- Fixed a heap corruption crash on Windows in `save_to_memory()`
+  (`STATUS_HEAP_CORRUPTION`, 0xC0000374). `sv_save_to_memory()` returns a block
+  from the SunVox library's own C runtime; `sunvox.dll` imports `msvcrt.dll`
+  while the MSVC-built extension links the UCRT, and the two keep separate
+  heaps, so releasing the block with the UCRT `free()` corrupted the heap. The
+  extension now resolves `free` from `msvcrt.dll` on Windows. The API exposes no
+  `sv_free`, so there is no portable alternative.
+- Fixed macOS x86_64 wheels failing `delocate-wheel` with "Library dependencies
+  do not satisfy target MacOS version 10.9". The x86_64 `sunvox.dylib` has a
+  minimum target of 10.12; the workflow now sets `MACOSX_DEPLOYMENT_TARGET`.
 - Fixed delvewheel failing with `Unable to find library: sunvox.dll`. The DLL is
   installed beside `_core.pyd` by CMake, so repair now excludes it.
 
@@ -40,6 +50,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   installing from an sdist still needs no network. The pruned subset drops
   `lib_arm/` and the `*_lofi` builds, which `CMakeLists.txt` never selects, along
   with the android, iOS and JS payloads: the sdist is 4.2 MB, down from 6.3 MB.
+
+- Removed `doc/sunvox_lib.pdf`, the 40-page "SunVox library for developers"
+  manual. Nothing referenced it, and README already links the upstream page it
+  came from. Git now tracks no binary files.
 
 - Windows builds generate `sunvox.lib` at CMake configure time from the tracked
   `support/sunvox.def` using `lib.exe`, replacing the committed import library.
