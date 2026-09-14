@@ -1,13 +1,19 @@
-# PySunVox TODO
+# TODO
 
-## Unwrapped API Functions
+## Critical
 
-- [ ] `sv_vorbis_load`: Legacy alias for sv_vplayer_load (deprecated)
+## High
 
-## Build & CI
+## Medium
 
-- [x] Multi-platform wheel builds (macOS, Linux, Windows)
-- [x] Aggregate all build artifacts into single download
+## Low
+
+- [ ] `sv_vorbis_load`: Legacy alias for sv_vplayer_load (deprecated) #unwrapped-api-functions
+
+## Done
+
+- [x] Multi-platform wheel builds (macOS, Linux, Windows) #build-ci
+- [x] Aggregate all build artifacts into single download #build-ci
 
 ## Notes
 
